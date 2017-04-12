@@ -13,10 +13,11 @@ class NewsAnalysisProcessor(Processor):
         log.info("NewsAnalysisProcessor begun")
 
         news_files = file_helper.get_files(self.options.stock_news_path)
-        news_objects = map(file_helper.extract_headline_from_file, news_files)
+        news_objects = map(lambda x: file_helper.extract_headline_from_file(x, self.options.news_source), news_files)
 
         with open(self.options.output_file, 'w') as output_file:
             for news_object in news_objects:
-                output_file.write(json.dumps(news_object) + "\n")
+                if news_object:
+                    output_file.write(json.dumps(news_object) + "\n")
 
         log.info("NewsAnalysisProcessor completed")
