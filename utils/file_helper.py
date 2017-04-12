@@ -13,7 +13,6 @@ def get_files(path):
 
 
 def extract_headline_from_file(file_path):
-    article_dict = None
     try:
         with open(file_path) as file:
             all_lines = file.readlines()
@@ -22,10 +21,11 @@ def extract_headline_from_file(file_path):
         article_dict['headline'] = all_lines[0].lstrip("-- ").strip()
         article_dict['publish_date'] = all_lines[2].lstrip("-- ").strip()
         article_dict['article_text'] = (" ".join(all_lines[4:])).strip()
+        article_dict['file_path'] = file_path
+
+        if article_dict['headline'] and article_dict['publish_date'] and article_dict['article_text']:
+            return article_dict
 
     except Exception as e:
         log.error("Skipped a headline " + str(file_path))
         log.error(e)
-
-    if article_dict:
-        return article_dict
