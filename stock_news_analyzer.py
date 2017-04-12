@@ -37,6 +37,8 @@ def parse_args(argv):
     parser = ArgumentParser(prog="stock-news-corpora-analysis")
     parser.add_argument('--stock_news_path', metavar='Stock News Path',
                         type=str, required=True)
+    parser.add_argument('--output_file', metavar='Output File',
+                        type=str, required=True)
 
     return parser.parse_args(argv, namespace=Options())
 
