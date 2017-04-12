@@ -2,11 +2,17 @@ from argparse import ArgumentParser
 
 import sys
 
+import logging
+
 from processors.news_analysis_processor import NewsAnalysisProcessor
-from utils import log_helper
 from utils.options import Options
 
-log = log_helper.get_logger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format='[%(asctime)s]: %(name)s : %(levelname)s : %(message)s'
+)
+log = logging.getLogger(__name__)
 
 
 def main(argv):

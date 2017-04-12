@@ -1,7 +1,8 @@
-from processors.processor import Processor
-from utils import log_helper
+import logging
 
-log = log_helper.get_logger(__name__)
+from processors.processor import Processor
+
+log = logging.getLogger(__name__)
 
 
 class NewsAnalysisProcessor(Processor):
