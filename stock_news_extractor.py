@@ -4,7 +4,7 @@ import sys
 
 import logging
 
-from processors.news_analysis_processor import NewsAnalysisProcessor
+from processors.news_extraction_processor import NewsExtractionProcessor
 from utils.options import Options
 from data.news_sources import source
 
@@ -20,12 +20,12 @@ def main(argv):
     options = parse_args(argv)
     log.info("options: " + str(options))
 
-    processor = NewsAnalysisProcessor(options)
+    processor = NewsExtractionProcessor(options)
     processor.process()
 
 
 def parse_args(argv):
-    parser = ArgumentParser(prog="stock-news-corpora-analysis")
+    parser = ArgumentParser(prog="news-extraction")
     parser.add_argument('--news_source', metavar='News source',
                         type=source, required=True)
     parser.add_argument('--stock_news_path', metavar='Stock News Path',

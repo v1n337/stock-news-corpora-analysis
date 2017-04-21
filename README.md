@@ -1,1 +1,1 @@
-# stock-news-corpora-analysis
+# Stock News - Corpora Analysis

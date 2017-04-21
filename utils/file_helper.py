@@ -1,10 +1,11 @@
+import logging
 from datetime import datetime
 from os import walk
-import logging
-
-from utils.options import Options
 
 log = logging.getLogger(__name__)
+
+stock_terms = {'stock', 'share'}
+trend_terms = {'surge', 'rise', 'shrink', 'jump', 'drop', 'fall', 'plunge', 'gain', 'slump'}
 
 
 def get_files(path):
@@ -15,7 +16,7 @@ def get_files(path):
     return news_files
 
 
-def extract_headline_from_file(file_path, news_source):
+def extract_content_from_file(file_path, news_source):
     try:
         with open(file_path) as file:
             all_lines = file.read()
@@ -24,16 +25,19 @@ def extract_headline_from_file(file_path, news_source):
         all_lines_split = all_lines.split("\n--")
         article_dict = dict()
         article_dict['headline'] = all_lines_split[1].strip()
+        split_headline = set(article_dict['headline'].split())
         article_dict['publish_date'] = parse_date(all_lines_split[3].strip(), news_source)
         article_dict['article_text'] = all_lines_split[4].strip()
         article_dict['file_path'] = file_path
 
-        if article_dict['headline'] and article_dict['publish_date'] and article_dict['article_text']:
+        if article_dict and article_dict['headline'] and article_dict['publish_date'] and article_dict['article_text']\
+                and split_headline & stock_terms and split_headline & trend_terms:
             return article_dict
 
     except Exception as e:
         log.error("Skipped a headline " + str(file_path))
         log.error(e)
+
 
 def parse_date(date_string, news_source):
     if news_source == 'reuters':
