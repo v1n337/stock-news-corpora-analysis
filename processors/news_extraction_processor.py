@@ -7,7 +7,29 @@ from gensim.models.doc2vec import TaggedDocument
 from processors.processor import Processor
 from utils import file_helper
 
+stock_terms = {'stock', 'share'}
+trend_terms = {'surge', 'rise', 'shrink', 'jump', 'drop', 'fall', 'plunge', 'gain', 'slump'}
+
 log = logging.getLogger(__name__)
+
+
+def is_stock_article(article_dict):
+
+    split_headline = set(article_dict['headline'].split())
+
+    return article_dict and article_dict['headline'] \
+            and article_dict['publish_date'] and article_dict['article_text'] \
+            and split_headline & stock_terms and split_headline & trend_terms
+
+
+def pair_with_similar_article(news_object, news_objects, docvec_model):
+
+    article_pair_dict = dict()
+    article_pair_dict['original'] = news_object
+    article_pair_dict['most_similar'] = \
+        news_objects[docvec_model.docvecs.most_similar(news_object['id'])[0][0]]
+
+    return article_pair_dict
 
 
 class NewsExtractionProcessor(Processor):
@@ -27,7 +49,7 @@ class NewsExtractionProcessor(Processor):
         log.info(str(len(news_objects)) + " news objects")
 
         log.info("Filtering stock news from all news")
-        stock_news_objects = list(filter(file_helper.is_stock_article, news_objects))
+        stock_news_objects = list(filter(is_stock_article, news_objects))
 
         log.info("Training doc2vec model")
         tagged_news_objects = \
@@ -35,11 +57,11 @@ class NewsExtractionProcessor(Processor):
                      news_objects))
         model = Doc2Vec(tagged_news_objects, iter=50, workers=8, min_count=10)
 
+        similar_articles_list = \
+            map(lambda x: pair_with_similar_article(x, news_objects, model), stock_news_objects)
+
         with open(self.options.output_file, 'w') as output_file:
-            for news_object in stock_news_objects:
-                output_file.write("original: " + json.dumps(news_object) + "\n")
-                output_file.write("most-similar: " +
-                                  json.dumps(news_objects[model.docvecs.most_similar(news_object['id'])[0][0]]) + 
-                                  "\n")
+            for article_pair in similar_articles_list:
+                output_file.write(json.dumps(article_pair, indent=4) + "\n")
 
         log.info("NewsExtractionProcessor completed")

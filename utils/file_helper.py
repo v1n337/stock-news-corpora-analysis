@@ -4,9 +4,6 @@ from os import walk
 
 log = logging.getLogger(__name__)
 
-stock_terms = {'stock', 'share'}
-trend_terms = {'surge', 'rise', 'shrink', 'jump', 'drop', 'fall', 'plunge', 'gain', 'slump'}
-
 headline_counter = 0
 
 
@@ -50,12 +47,3 @@ def parse_date(date_string, news_source):
     else:
         log.error("no news source selected " + str(news_source))
         exit(0)
-
-
-def is_stock_article(article_dict):
-
-    split_headline = set(article_dict['headline'].split())
-
-    return article_dict and article_dict['headline'] \
-            and article_dict['publish_date'] and article_dict['article_text'] \
-            and split_headline & stock_terms and split_headline & trend_terms
