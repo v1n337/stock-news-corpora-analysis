@@ -33,14 +33,13 @@ class NewsExtractionProcessor(Processor):
         tagged_news_objects = \
             list(map(lambda x: TaggedDocument(x['article_text'].split(), [x['id']]),
                      news_objects))
-        model = Doc2Vec(tagged_news_objects, iter=50, workers=8, min_count=100)
+        model = Doc2Vec(tagged_news_objects, iter=50, workers=8, min_count=10)
 
         with open(self.options.output_file, 'w') as output_file:
             for news_object in stock_news_objects:
                 output_file.write("original: " + json.dumps(news_object) + "\n")
                 output_file.write("most-similar: " +
-                                  json.dumps(
-                                      model.most_similar(str(news_object['id']))
-                                  ) + "\n")
+                                  json.dumps(news_objects[model.docvecs.most_similar(news_object['id'])[0][0]]) + 
+                                  "\n")
 
         log.info("NewsExtractionProcessor completed")
