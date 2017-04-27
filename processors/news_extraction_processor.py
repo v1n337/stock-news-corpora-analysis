@@ -33,37 +33,41 @@ def pair_with_similar_article(news_object, news_objects, docvec_model, date_to_i
     article_pair_dict = dict()
     article_pair_dict['original'] = news_object
 
-    source_vector = \
-        docvec_model.infer_vector(
-            [word for word in news_object['article_text'].split()
-             if word not in stopwords.words('english')]
-        )
-    source_date = news_object['publish_date']
+    try:
+        source_vector = \
+            docvec_model.infer_vector(
+                [word for word in news_object['article_text'].split()
+                 if word not in stopwords.words('english')]
+            )
+        source_date = news_object['publish_date']
 
-    articles_within_range = list()
-    for i in range(lookback_days):
-        current_date = source_date - timedelta(days=i)
-        articles_within_range.extend(date_to_id_map[current_date])
+        articles_within_range = list()
+        for i in range(lookback_days):
+            current_date = source_date - timedelta(days=i)
+            articles_within_range.extend(date_to_id_map[current_date])
 
-    most_similar_article = None
-    best_cosine_similarity = None
-    for article_id in articles_within_range:
-        current_cosine_similarity = \
-            cosine_similarity(
-                numpy.array(source_vector).reshape(1, -1),
-                numpy.array(
-                    docvec_model.infer_vector(
-                        [word for word in news_objects[article_id]['article_text'].split()
-                         if word not in stopwords.words('english')]
-                    )
-                ).reshape(1, -1)
-            )[0][0]
+        most_similar_article = None
+        best_cosine_similarity = None
+        for article_id in articles_within_range:
+            current_cosine_similarity = \
+                cosine_similarity(
+                    numpy.array(source_vector).reshape(1, -1),
+                    numpy.array(
+                        docvec_model.infer_vector(
+                            [word for word in news_objects[article_id]['article_text'].split()
+                             if word not in stopwords.words('english')]
+                        )
+                    ).reshape(1, -1)
+                )[0][0]
 
-        if not most_similar_article or best_cosine_similarity > current_cosine_similarity:
-            most_similar_article = news_objects[article_id]
-            best_cosine_similarity = current_cosine_similarity
+            if not most_similar_article or best_cosine_similarity > current_cosine_similarity:
+                most_similar_article = news_objects[article_id]
+                best_cosine_similarity = current_cosine_similarity
 
-    article_pair_dict['most_similar'] = most_similar_article
+        article_pair_dict['most_similar'] = most_similar_article
+    except Exception as e:
+        log.error("Error for article " + news_object['headline'])
+        log.error(e)
 
     return article_pair_dict
 
