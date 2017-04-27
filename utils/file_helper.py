@@ -41,9 +41,9 @@ def extract_content_from_file(file_path, news_source):
 
 def parse_date(date_string, news_source):
     if news_source == 'reuters':
-        return datetime.strptime(date_string, '%a %b %d, %Y %I:%M%p %Z').timestamp()
+        return datetime.strptime(date_string, '%a %b %d, %Y %I:%M%p %Z').date()
     elif news_source == 'bloomberg':
-        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ").timestamp()
+        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ").date()
     else:
         log.error("no news source selected " + str(news_source))
         exit(0)

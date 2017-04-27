@@ -1,7 +1,8 @@
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
+import numpy
 from gensim.models import Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from sklearn.metrics.pairwise import cosine_similarity
@@ -31,7 +32,7 @@ def pair_with_similar_article(news_object, news_objects, docvec_model, date_to_i
     article_pair_dict['original'] = news_object
 
     source_vector = docvec_model.infer_vector(news_object['article_text'].split())
-    source_date = datetime.fromtimestamp(news_object['publish_date']).date()
+    source_date = news_object['publish_date']
 
     articles_within_range = list()
     for i in range(lookback_days):
@@ -43,9 +44,11 @@ def pair_with_similar_article(news_object, news_objects, docvec_model, date_to_i
     for article_id in articles_within_range:
         current_cosine_similarity = \
             cosine_similarity(
-                source_vector,
-                docvec_model.infer_vector(news_objects[article_id]['article_text'].split())
-            )
+                numpy.array(source_vector).reshape(1, -1),
+                numpy.array(
+                    docvec_model.infer_vector(news_objects[article_id]['article_text'].split())
+                ).reshape(1, -1)
+            )[0][0]
 
         if not most_similar_article or best_cosine_similarity > current_cosine_similarity:
             most_similar_article = news_objects[article_id]
@@ -60,7 +63,7 @@ def create_date_to_id_map(news_objects):
 
     date_to_id_map = dict()
     for news_object in news_objects:
-        date = datetime.fromtimestamp(news_object['publish_date']).date()
+        date = news_object['publish_date']
 
         if date in date_to_id_map.keys():
             tmp_list = date_to_id_map[date]
@@ -106,6 +109,8 @@ class NewsExtractionProcessor(Processor):
                 stock_news_objects)
 
         with open(self.options.output_file, 'w') as output_file:
-            output_file.write(json.dumps(similar_articles_list, indent=4) + "\n")
+            output_file.write(
+                json.dumps(list(similar_articles_list), indent=4, default=str) + "\n"
+            )
 
         log.info("NewsExtractionProcessor completed")
