@@ -1,3 +1,5 @@
+from nltk.corpus import stopwords
+
 import json
 import logging
 from datetime import timedelta
@@ -31,7 +33,11 @@ def pair_with_similar_article(news_object, news_objects, docvec_model, date_to_i
     article_pair_dict = dict()
     article_pair_dict['original'] = news_object
 
-    source_vector = docvec_model.infer_vector(news_object['article_text'].split())
+    source_vector = \
+        docvec_model.infer_vector(
+            [word for word in news_object['article_text'].split()
+             if word not in stopwords.words('english')]
+        )
     source_date = news_object['publish_date']
 
     articles_within_range = list()
@@ -46,7 +52,10 @@ def pair_with_similar_article(news_object, news_objects, docvec_model, date_to_i
             cosine_similarity(
                 numpy.array(source_vector).reshape(1, -1),
                 numpy.array(
-                    docvec_model.infer_vector(news_objects[article_id]['article_text'].split())
+                    docvec_model.infer_vector(
+                        [word for word in news_objects[article_id]['article_text'].split()
+                         if word not in stopwords.words('english')]
+                    )
                 ).reshape(1, -1)
             )[0][0]
 
@@ -96,8 +105,16 @@ class NewsExtractionProcessor(Processor):
 
         log.info("Training doc2vec model")
         tagged_news_objects = \
-            list(map(lambda x: TaggedDocument(x['article_text'].split(), [x['id']]),
-                     news_objects))
+            list(
+                map(
+                    lambda x: TaggedDocument(
+                        [word for word in x['article_text'].split()
+                         if word not in stopwords.words('english')],
+                        [x['id']]
+                    ),
+                    news_objects
+                )
+            )
         model = Doc2Vec(tagged_news_objects, iter=50, workers=8, min_count=10)
 
         log.info("Creating date-wise map")
